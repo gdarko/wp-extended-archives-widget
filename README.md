@@ -14,4 +14,4 @@ Current planned features include:
 - Archives Shortcode
 
 # License
-This plugin is released under GPLv2. Please see README.md for more information.
+This plugin is released under GPLv2. Please see LICENCE.md for more information.
