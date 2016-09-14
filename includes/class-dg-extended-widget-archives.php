@@ -26,6 +26,10 @@ class DG_Extended_Widget_Archives extends WP_Widget {
         $ttype = ! empty( $instance['ttype'] ) ? $instance['ttype'] : 'monthly';
         $limit = ! empty( $instance['archive_limit'] ) ? $instance['archive_limit'] : '';
 
+        if(strpos($ptype, ',') !== false){
+            $ptype = explode(',', $ptype);
+        }
+
         if(is_int( $limit ) || is_numeric( $limit ) && 0 === (int)$limit) {
             $limit = '';
         }
@@ -79,7 +83,7 @@ class DG_Extended_Widget_Archives extends WP_Widget {
                 ?>
 
                 <option value=""><?php echo esc_attr( $label ); ?></option>
-                <?php wp_get_archives( $dropdown_args ); ?>
+                <?php wp_eaw_get_archives( $dropdown_args ); ?>
 
             </select>
         <?php } else { ?>
@@ -92,7 +96,7 @@ class DG_Extended_Widget_Archives extends WP_Widget {
                  *
                  * @param array $args An array of Archives option arguments.
                  */
-                wp_get_archives( apply_filters( 'widget_extended_archives_args', array(
+                wp_eaw_get_archives( apply_filters( 'widget_extended_archives_args', array(
                     'type'            => $ttype,
                     'show_post_count' => $c,
                     'post_type'       => $ptype,
@@ -120,7 +124,17 @@ class DG_Extended_Widget_Archives extends WP_Widget {
         $instance['title'] = sanitize_text_field( $new_instance['title'] );
         $instance['count'] = $new_instance['count'] ? 1 : 0;
         $instance['dropdown'] = $new_instance['dropdown'] ? 1 : 0;
-        $instance['ptype'] = !empty($new_instance['ptype']) && is_string($new_instance['ptype']) ? $new_instance['ptype'] : 'post';
+
+        //var_dump($new_instance['ptype']);
+        
+        if(!empty($new_instance['ptype'])){
+            if(is_array($new_instance['ptype']) && count($new_instance['ptype']) > 0){
+                $instance['ptype'] = implode(',', $new_instance['ptype']);
+            } else {
+                $instance['ptype'] = is_string($new_instance['ptype']) ? $new_instance['ptype'] : 'post';
+            }
+        }
+
         $instance['ttype'] = !empty($new_instance['ttype']) && is_string($new_instance['ttype']) ? $new_instance['ttype'] : 'monthly';
         $instance['archive_limit'] = !empty($new_instance['archive_limit']) ? $new_instance['archive_limit'] : '';
         return $instance;
@@ -138,6 +152,14 @@ class DG_Extended_Widget_Archives extends WP_Widget {
         $instance = wp_parse_args( (array) $instance, array( 'title' => '', 'count' => 0, 'dropdown' => '', 'alimit' => '') );
         $title    = sanitize_text_field( $instance['title'] );
         $limit    = sanitize_text_field( $instance['archive_limit'] );
+
+        //var_dump($instance['ptype']);
+
+        if(strpos($instance['ptype'], ',') !== false){
+            $selected_post_types = explode(',',$instance['ptype']);
+        } else {
+            $selected_post_types = (array)$instance['ptype'];
+        }
 
         $ptypes = get_post_types( array( "_builtin" => false ) );
 
@@ -157,11 +179,11 @@ class DG_Extended_Widget_Archives extends WP_Widget {
             </select>
         </p>
         <p><label for="<?php echo $this->get_field_id('ptype'); ?>"><?php _e('Choose Post Type:'); ?></label><br/>
-            <select id="<?php echo $this->get_field_id('ptype'); ?>" name="<?php echo $this->get_field_name('ptype'); ?>" class="widefat">
+            <select multiple id="<?php echo $this->get_field_id('ptype'); ?>" name="<?php echo $this->get_field_name('ptype[]'); ?>" class="widefat">
                 <option value="post" <?php selected( $instance['ptype'], 'post' ); ?> >Default (Post)</option>
                 <?php foreach($ptypes as $post_type):
                         $post_type_obj = get_post_type_object( $post_type );?>
-                        <option value="<?php echo strtolower($post_type); ?>" <?php selected( $instance['ptype'], strtolower($post_type) ); ?> ><?php echo $post_type_obj->labels->menu_name; ?></option>
+                        <option value="<?php echo strtolower($post_type); ?>" <?php echo in_array(strtolower($post_type), $selected_post_types) ? 'selected="selected"' : ''; ?> ><?php echo $post_type_obj->labels->menu_name; ?></option>
                 <?php endforeach; ?>
             </select>
         </p>
