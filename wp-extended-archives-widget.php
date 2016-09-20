@@ -127,7 +127,7 @@ class DG_Extended_Archives
                 $post_types = (array)$_GET['post_type'];
             }
 
-            if ( ! is_archive() && ! in_array( get_post_type(), $post_types ) )
+            if ( ! is_archive() && ! in_array( get_post_type(), $post_types ) || is_admin() )
                 return $query;
             
             $query->set( 'post_type', $post_types );
